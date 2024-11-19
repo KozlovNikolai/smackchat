@@ -1,11 +1,21 @@
 <template>
-  <router-view />
+  <div id="q-app">
+    <router-view />
+  </div>
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent, onMounted } from 'vue'
+import { useChatStore } from './stores/example-store'
 
 export default defineComponent({
-  name: 'App'
-});
+  name: 'App',
+
+  setup() {
+    const store = useChatStore()
+    onMounted(() => {
+      store.handleAuthStateChanged()
+    })
+  },
+})
 </script>

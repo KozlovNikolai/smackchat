@@ -2,10 +2,29 @@
   <q-layout view="lHh Lpr lFf">
     <q-header elevated>
       <q-toolbar>
+        <q-btn
+          v-if="$route.fullPath.includes('/chat')"
+          @click="goBack"
+          icon="arrow_back"
+          flat
+          no-caps
+          dense
+          label="Back"
+        />
+
         <q-toolbar-title class="absolute-center">
           {{ title }}
         </q-toolbar-title>
 
+        <q-btn
+          to="/auth"
+          class="absolute-right q-pr-sm"
+          icon="account_circle"
+          flat
+          no-caps
+          dense
+          label="Login"
+        />
       </q-toolbar>
     </q-header>
 
@@ -16,37 +35,42 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, watch } from 'vue';
-import { useRoute } from 'vue-router';
+import { defineComponent, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 export default defineComponent({
   setup() {
-    const route = useRoute();
-    const title = ref('');
+    const route = useRoute()
+    const router = useRouter()
+    const title = ref('')
 
     const updateTitle = () => {
       switch (route.fullPath) {
         case '/':
-          title.value = 'SmackChat';
-          break;
+          title.value = 'SmackChat'
+          break
         case '/auth':
-          title.value = 'Login';
-          break;
+          title.value = 'Login'
+          break
         case '/chat':
-          title.value = 'Chat';
-          break;
+          title.value = 'Chat'
+          break
         default:
-          title.value = 'SmackChat';
+          title.value = 'SmackChat'
       }
-    };
+    }
 
-    watch(route, updateTitle, { immediate: true });
+    const goBack = () => {
+      router.go(-1)
+    }
+    watch(route, updateTitle, { immediate: true })
     watch(route, (newRoute) => {
       console.log('Route changed: ', newRoute.fullPath)
     })
     return {
       title,
-    };
+      goBack,
+    }
   },
-});
+})
 </script>
