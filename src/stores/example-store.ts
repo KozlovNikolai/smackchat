@@ -8,8 +8,11 @@ import {
 } from 'firebase/auth'
 import { getDatabase, ref as dbRef, set, get, child } from 'firebase/database'
 
-export const useChatStore = defineStore('counter', {
-  state: () => ({}),
+export const useChatStore = defineStore('chat_store', {
+  state: () => ({
+    /** @type {{ email: string, name: string, userId: string }} */
+    userDetails: { email: '', name: '', userId: '' },
+  }),
 
   getters: {},
 
@@ -24,7 +27,7 @@ export const useChatStore = defineStore('counter', {
         payload.value.email,
         payload.value.password
       )
-        .then((userCredential) => {
+        .then(async (userCredential) => {
           // Signed up
           const user = userCredential.user
           console.log('user: ', user)
@@ -33,11 +36,13 @@ export const useChatStore = defineStore('counter', {
           const userId = userCredential.user.uid
           const db = getDatabase()
 
-          set(dbRef(db, 'users/' + userId), {
+          const snapshot = await set(dbRef(db, 'users/' + userId), {
             name: payload.value.name,
             email: payload.value.email,
             online: true,
           })
+
+          console.log('Register user snapshot: ', snapshot)
         })
         .catch((error) => {
           const errorCode = error.code
@@ -57,7 +62,7 @@ export const useChatStore = defineStore('counter', {
         .then((userCredential) => {
           // Signed in
           const user = userCredential.user
-          console.log('user: ', user)
+          console.log('Login user: ', user)
           // ...
         })
         .catch((error) => {
@@ -72,12 +77,23 @@ export const useChatStore = defineStore('counter', {
       const auth = getAuth()
       const db = getDatabase()
 
-      onAuthStateChanged(auth, async (user) => {
-        if (user) {
-          const userId = auth.currentUser?.uid
-          const dbReference = dbRef(db)
-          const snapshot = await get(child(dbReference, 'users/' + userId))
-          console.log('Snapshot: ', snapshot)
+      onAuthStateChanged(auth, async () => {
+        const userId = auth.currentUser?.uid
+        const dbReference = dbRef(db)
+        const snapshot = await get(child(dbReference, 'users/' + userId))
+        const userFields = snapshot.val()
+        if (userFields) {
+          // User is logged in.
+          console.log('snapshot.val(): ', userFields)
+          this.userDetails.name = String(userFields.name)
+          this.userDetails.email = String(userFields.email)
+          this.userDetails.userId = String(userId)
+        } else {
+          // User is logged out.
+          console.log('User Logout.')
+          this.userDetails.name = ''
+          this.userDetails.email = ''
+          this.userDetails.userId = ''
         }
       })
     },
