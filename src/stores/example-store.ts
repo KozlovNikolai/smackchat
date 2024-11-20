@@ -1,20 +1,45 @@
+import { UserDetails, userItem } from './../components/models'
 import { defineStore } from 'pinia'
 import { Ref } from 'vue'
 import {
   getAuth,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  signOut,
   onAuthStateChanged,
 } from 'firebase/auth'
-import { getDatabase, ref as dbRef, set, get, child } from 'firebase/database'
+import {
+  getDatabase,
+  ref as dbRef,
+  set,
+  get,
+  child,
+  update,
+} from 'firebase/database'
 
 export const useChatStore = defineStore('chat_store', {
   state: () => ({
     /** @type {{ email: string, name: string, userId: string }} */
     userDetails: { email: '', name: '', userId: '' },
+    usersMap: new Map<string, UserDetails>(),
   }),
 
-  getters: {},
+  getters: {
+    userID(state) {
+      return state.userDetails.userId
+    },
+    users(state) {
+      return state.usersMap
+    },
+    usersArray: (state): userItem[] => {
+      return Array.from(state.usersMap.entries()).map(([userId, value]) => ({
+        userId,
+        email: value.email, // Можно заменить на реальное значение email
+        name: value.name,
+        online: value.online,
+      }))
+    },
+  },
 
   actions: {
     registerUser(
@@ -43,6 +68,7 @@ export const useChatStore = defineStore('chat_store', {
           })
 
           console.log('Register user snapshot: ', snapshot)
+          this.loginUser(payload)
         })
         .catch((error) => {
           const errorCode = error.code
@@ -72,6 +98,11 @@ export const useChatStore = defineStore('chat_store', {
           console.log('errorMessage: ', errorMessage)
         })
     },
+    logoutUser() {
+      const auth = getAuth()
+      signOut(auth)
+      console.log('logoutUser done.')
+    },
     handleAuthStateChanged() {
       console.log('handleAuthStateChanged')
       const auth = getAuth()
@@ -88,14 +119,45 @@ export const useChatStore = defineStore('chat_store', {
           this.userDetails.name = String(userFields.name)
           this.userDetails.email = String(userFields.email)
           this.userDetails.userId = String(userId)
+          update(dbRef(db, 'users/' + userId), {
+            online: true,
+          })
+          this.firebaseGetUsers()
+          this.router.push('/')
         } else {
           // User is logged out.
-          console.log('User Logout.')
+          console.log('User Logout.', this.userDetails.userId)
+          if (this.userDetails.userId) {
+            update(dbRef(db, 'users/' + this.userDetails.userId), {
+              online: false,
+            })
+          }
+          // this.$reset
           this.userDetails.name = ''
           this.userDetails.email = ''
           this.userDetails.userId = ''
+          this.router.replace('/auth')
         }
       })
+    },
+    firebaseGetUsers() {
+      const dbReference = dbRef(getDatabase())
+      get(child(dbReference, 'users'))
+        .then((snapshot) => {
+          if (snapshot.exists()) {
+            const nodeDetails = snapshot.val()
+            Object.entries(nodeDetails).forEach(([key, value]) => {
+              const userDetails: UserDetails = value as UserDetails
+              this.usersMap.set(key, userDetails)
+            })
+          } else {
+            console.log('No data available')
+          }
+        })
+        .catch((error) => {
+          console.error('!!!!!!!!!!!!', error)
+        })
+      console.log('++++Users++++:', this.usersMap)
     },
   },
 })

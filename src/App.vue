@@ -14,6 +14,7 @@ export default defineComponent({
   setup() {
     const store = useChatStore()
     onMounted(() => {
+      console.log('APP MOUNTED')
       store.handleAuthStateChanged()
     })
   },

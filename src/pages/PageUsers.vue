@@ -6,7 +6,7 @@
     >
       <q-item
         v-for="user in users"
-        :key="user.id"
+        :key="user.userId"
         to="/chat"
         clickable
         v-ripple
@@ -22,6 +22,7 @@
 
         <q-item-section>
           <q-item-label>{{ user.name }}</q-item-label>
+          <q-item-label>{{ user.email }}</q-item-label>
         </q-item-section>
 
         <q-item-section side>
@@ -35,32 +36,20 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
-
+import { defineComponent, onBeforeMount } from 'vue'
+import { useChatStore } from 'src/stores/example-store'
+// import { userItem } from 'src/components/models'
+const store = useChatStore()
 export default defineComponent({
   name: 'IndexPage',
-
-  components: {},
-
   setup() {
+    // const users: userItem[] = store.usersArray as userItem[]
+    const users = store.usersArray
+
+    onBeforeMount(() => {})
+
     return {
-      users: [
-        {
-          id: 1,
-          name: 'Danny',
-          online: true,
-        },
-        {
-          id: 2,
-          name: 'Jim',
-          online: false,
-        },
-        {
-          id: 3,
-          name: 'Lucy',
-          online: true,
-        },
-      ],
+      users,
     }
   },
 })

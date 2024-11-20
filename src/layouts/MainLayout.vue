@@ -17,6 +17,7 @@
         </q-toolbar-title>
 
         <q-btn
+          v-if="!store.userDetails.userId"
           to="/auth"
           class="absolute-right q-pr-sm"
           icon="account_circle"
@@ -25,6 +26,18 @@
           dense
           label="Login"
         />
+        <q-btn
+          v-else
+          @click="store.logoutUser"
+          class="absolute-right q-pr-sm"
+          icon="account_circle"
+          flat
+          no-caps
+          dense
+        >
+          Logout<br />
+          {{ store.userDetails.name }}
+        </q-btn>
       </q-toolbar>
     </q-header>
 
@@ -37,12 +50,14 @@
 <script lang="ts">
 import { defineComponent, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useChatStore } from 'src/stores/example-store'
 
 export default defineComponent({
   setup() {
     const route = useRoute()
     const router = useRouter()
     const title = ref('')
+    const store = useChatStore()
 
     const updateTitle = () => {
       switch (route.fullPath) {
@@ -67,9 +82,11 @@ export default defineComponent({
     watch(route, (newRoute) => {
       console.log('Route changed: ', newRoute.fullPath)
     })
+
     return {
       title,
       goBack,
+      store,
     }
   },
 })

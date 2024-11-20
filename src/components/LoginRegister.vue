@@ -17,6 +17,7 @@
       v-model="formData.password"
       class="q-mb-md"
       outlined
+      type="password"
       label="Password"
     />
     <div class="row">
@@ -43,8 +44,8 @@ export default defineComponent({
     const formData: Ref<{ name: string; email: string; password: string }> =
       ref({
         name: '',
-        email: '',
-        password: '',
+        email: 'cmd@cmd.ru',
+        password: '123456',
       })
     const submitForm = () => {
       if (props.tab == 'login') {
